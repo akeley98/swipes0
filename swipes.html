@@ -21,7 +21,7 @@ const reader = new FileReader();
     websocket.onmessage = function(evt) { onMessage(evt) };
     websocket.onerror = function(evt) { onError(evt) };
   }
-
+  
   function onOpen(evt)
   {
     setOutput("CONNECTED");
@@ -34,12 +34,14 @@ const reader = new FileReader();
 
   function onMessage(evt)
   {
-    setOutput(reader.readAsText(evt.data));
+    evt.data.text().then(
+        text => setOutput(text));
   }
 
   function onError(evt)
   {
-    setOutput('<span style="color: red;">ERROR:</span> ' + evt.data);
+    evt.data.text().then(
+        text => '<span style="color: red;">ERROR:</span> ' + setOutput(text));
   }
 
   function doSend(message)
@@ -47,9 +49,9 @@ const reader = new FileReader();
     websocket.send(message);
   }
 
-  function setOutput(message)
+  function setOutput(arg)
   {
-    output.innerHTML = message;
+    output.innerHTML = arg;
   }
   
   function refreshResults()
