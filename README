@@ -1,0 +1,16 @@
+Crappy prototype 0 for "Grindr for Swipes". Hacked together as I
+learned about websockets; not really documented, and this is not a
+real readme.
+
+1. Clone websocketpp from `git@github.com:zaphoyd/websocketpp.git`
+
+2. Make the directory/symlink `websocketpp` be/point to the
+   websocketpp directory you downloaded.
+
+3. Run `make`.
+
+4. Run `./server`.
+
+5. Run `python3 -m http.server` or `python -m SimpleHTTPServer`.
+
+6. Open `http://0.0.0.0:8000/swipes.html` with a browser.

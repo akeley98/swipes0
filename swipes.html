@@ -1,0 +1,222 @@
+ <!DOCTYPE html>
+<meta charset="utf-8" />
+<title>WebSocket Test</title>
+<script language="javascript" type="text/javascript">
+// Adapted from https://www.websocket.org/echo.html
+var wsUri = "ws://0.0.0.0:9002";
+var output;
+const reader = new FileReader();
+
+  function init()
+  {
+    output = document.getElementById("output");
+    testWebSocket();
+  }
+
+  function testWebSocket()
+  {
+    websocket = new WebSocket(wsUri);
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+  }
+
+  function onOpen(evt)
+  {
+    setOutput("CONNECTED");
+  }
+
+  function onClose(evt)
+  {
+    setOutput("DISCONNECTED");
+  }
+
+  function onMessage(evt)
+  {
+    setOutput(reader.readAsText(evt.data));
+  }
+
+  function onError(evt)
+  {
+    setOutput('<span style="color: red;">ERROR:</span> ' + evt.data);
+  }
+
+  function doSend(message)
+  {
+    websocket.send(message);
+  }
+
+  function setOutput(message)
+  {
+    output.innerHTML = message;
+  }
+  
+  function refreshResults()
+  {
+    var o = {}
+    
+    // Should worry about HTML injection in real world.
+    o.username = document.getElementById("username").value;
+  
+    o.bplate = document.getElementById("bplate").checked;
+    o.covel = document.getElementById("covel").checked;
+    o.deneve = document.getElementById("deneve").checked;
+    o.feast = document.getElementById("feast").checked;
+    
+    const buying = document.getElementById("buying").checked;
+    o.selling = document.getElementById("selling").checked;
+    
+    const priceString = document.getElementById("price").value;
+    const priceNumber = Number(priceString);
+    if (isNaN(priceNumber)) {
+      setOutput("Could not convert to number: " + priceString);
+      return;
+    }
+    
+    o.priceCents = 0 | Math.round(priceNumber * 100);
+    if (o.priceCents <= 0 || o.priceCents >= 65536) {
+      setOutput("Price must be in the range of $0.01 to $655.35 .");
+      return;
+    }
+    
+    if (o.username.length < 1 || o.username.length > 100) {
+      setOutput("Username must be between 1 and 100 characters long.");
+      return;
+    }
+    
+    if (buying == o.selling) {
+      setOutput(buying ? "Both buying and selling?" : "Select 'buying' or 'selling'");
+      return;
+    }
+    
+    if (! (o.bplate | o.covel | o.deneve | o.feast)) {
+      setOutput("No dining halls selected.");
+      return;
+    }
+    
+    setOutput("Waiting...");
+    
+    const message = message_from_bid_object(o);
+    const messageLength = message.byteLength;
+    
+    doSend(message);
+  }
+  
+  // Convert a bid represented as a js object into a message
+  // (Uint8Array: array of bytes) that can be sent to the server.
+  //
+  // Object o should have keys:
+  //   username
+  //   selling
+  //   bplate
+  //   covel
+  //   deneve
+  //   feast
+  //   priceCents
+  // 
+  // Message format:
+  // Byte 0: Magic number (130)
+  // Byte 1: Flags
+  // Byte 2: Cents low (cents % 256)
+  // Byte 3: Cents high (cents / 256)
+  // Remaining bytes: username (ascii)
+  function message_from_bid_object(o) {
+    var username = o.username;
+    var usernameLen = username.length;
+    var message = new Uint8Array(4 + usernameLen);
+    
+    // Write magic number
+    message[0] = 130;
+    
+    // Write flags.
+    var flags = 0;
+    flags |= (o.selling ? 1 : 0);
+    flags |= (o.bplate ? 2 : 0);
+    flags |= (o.covel ? 4 : 0);
+    flags |= (o.deneve ? 8 : 0);
+    flags |= (o.feast ? 16 : 0);
+    message[1] = flags;
+    
+    // Write bid price.
+    const cents = o.priceCents;
+    const centsLow = cents & 255;
+    const centsHigh = cents / 255;
+    message[2] = centsLow;
+    message[3] = centsHigh;
+    
+    // Write username. Deal with unicode (maybe??) in real application.
+    // Non ascii letter/number/space characters become underscore.
+    for (var n = 0; n < usernameLen; ++n) {
+      // This is so hacky.
+      nameCharCode = username.charCodeAt(n);
+      charCode = 95; // underscore.
+      
+      // Allow uppercase letters.
+      if (nameCharCode >= 0x41 && nameCharCode <= 0x5A) charCode = nameCharCode;
+      
+      // Allow lowercase letters.
+      if (nameCharCode >= 0x61 && nameCharCode <= 0x7A) charCode = nameCharCode;
+      
+      // Allow numbers.
+      if (nameCharCode >= 0x30 && nameCharCode <= 0x39) charCode = nameCharCode;
+      
+      // Allow spaces.
+      if (nameCharCode == 0x20) charCode = nameCharCode;
+      
+      // Write this character of the username to the message byte array.
+      message[4+n] = charCode;
+    }
+    
+    return message;
+  }
+
+  window.addEventListener("load", init, false);
+
+  </script>
+
+  <h2>Grindr for Swipes </h2>
+  
+  <i> Note: (</i>letter<i>) denotes an accesskey shortcut -- usually
+  Alt-</i>letter<i> or Alt-shift-</i>letter <br> <br>
+
+  <b> Unique ASCII Username </b> (u) <br>
+  <input type="text" name="username" id="username" value="PLACEHOLDER" accesskey="u"> <br>
+  
+  <br>
+  
+  <b> Buying/Selling </b> <br>
+  
+  <input type="radio" name="buysell" id="buying" accesskey="y">
+  <b> Buying </b> (y) <br>
+  
+  <input type="radio" name="buysell" id="selling" accesskey="s">
+  <b> Selling </b> (s) <br>
+  
+  <br>
+  
+  <b> Selected dining Halls </b><br>
+  
+  <input type="checkbox" name="bplate" id="bplate" accesskey="b">
+  <b> Bruin Plate </b> (b) <br>
+  
+  <input type="checkbox" name="covel" id="covel" accesskey="c">
+  <b> Covel </b> (c) <br>
+  
+  <input type="checkbox" name="deneve" id="deneve" accesskey="d">
+  <b> De Neve </b> (d) <br>
+  
+  <input type="checkbox" name="feast" id="feast" accesskey="f">
+  <b> Feast at Rieber </b> (f) <br>
+  
+  <br>
+  
+  <b> Price </b> (p) <br>
+  <input type="text" name="price" id="price" value="" accesskey="p"> <br>
+  
+  <br>
+  
+  <b> Results </b> (r)
+  <button onclick="refreshResults()" accesskey="r">refresh (todo: automate)</button> <br>
+  <br>
+  <div id="output"></div>
