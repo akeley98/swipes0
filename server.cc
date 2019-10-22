@@ -68,7 +68,7 @@ struct bid_info
         uint8_t flags = msg[1];
         cents bid_cents = msg[3];
         bid_cents <<= 8;
-        bid_cents |= msg[2];
+        bid_cents |= uint8_t(msg[2]);
         
         std::string username(&msg[4], &msg[msg.size()]);
         
@@ -140,6 +140,15 @@ struct bid_info
         *out += std::move(result);
         return true;
     }
+    
+    // Print debug view of the bid_info.
+    friend std::ostream& operator<< (std::ostream& out, const bid_info& bid)
+    {
+        out << "bid_info(" << bid.bid_cents << ", "
+            << unsigned(bid.flags) << ", \""
+            << bid.username << "\")";
+        return out;
+    }
 };
 
 // Write a pointer to the global vector of user bids to *out, and
@@ -205,6 +214,7 @@ void on_message(server* s, websocketpp::connection_hdl hdl, message_ptr msg) {
         // Now create a list of matches.
         bool had_match = false;
         for (auto it = begin_it; it != end_it; ++it) {
+            std::cout << *it << "\n";
             bool matches = new_bid.try_append_match_string(*it, &output);
             had_match |= matches;
         }
