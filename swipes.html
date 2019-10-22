@@ -10,7 +10,27 @@ const reader = new FileReader();
   function init()
   {
     output = document.getElementById("output");
+    var usernameElement = document.getElementById("username");
+    if (usernameElement.value == "PLACEHOLDER") {
+      usernameElement.value = makeRandomUsername();
+    }
     testWebSocket();
+  }
+  
+  function makeRandomUsername() {
+    // Generate random username.
+    adverbs = ["Elegantly", "Swiftly", "Feverishly", "Suspiciously",
+               "Unexpectedly", "Optimistically", "Innocently", "Patiently"]
+    adjectives = ["Magenta", "Stoic", "Ecstatic", "Painted", "Garish",
+                  "Tall", "Short", "Infuriated", "Ravenous", "Panicked",
+                  "Clicky", "Outgoing", "Awkward", "Putrid"]
+    nouns = ["Gazelle", "Gecko", "Keyboard", "Poached Pear", "Dinner",
+             "Robot", "Napkin", "Compiler", "Inquisitor", "Cheese",
+             "Kitchen Sink", "Pencil", "Cucumber", "Salad"]
+    
+    choose = (arr => arr[0 | (Math.random() * arr.length)]);
+    
+    return choose(adverbs) + " " + choose(adjectives) + " " + choose(nouns);
   }
 
   function testWebSocket()

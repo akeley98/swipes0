@@ -135,7 +135,7 @@ struct bid_info
         if (feast) result += " | feast";
         result += " | user: '";
         result += other.username;
-        result += "'\n";
+        result += "'\n<br>\n";
         
         *out += std::move(result);
         return true;
