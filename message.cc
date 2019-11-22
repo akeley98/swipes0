@@ -103,7 +103,9 @@ class Message
         }
 
         // Check that the message is long enough.
-        constexpr size_t uint64_t_count = std::tuple_size<decltype(tup)>::value;
+        // (-1) comes from extra SenderID field.
+        constexpr size_t uint64_t_count =
+            std::tuple_size<decltype(tup)>::value - 1;
         size_t minimum_size = uint64_t_count * sizeof(uint64_t)
                             + sizeof serial_message;
 
@@ -112,6 +114,9 @@ class Message
                 "Serial message too short for message with magic number "
                 + std::to_string(MagicNumber));
         }
+
+        std::get<SenderID>(tup).value = should_swap_endian
+            ? bswap_64(header.sender_id) : header.sender_id;
 
         // Copy the array of 64 bit values from the serial message to the
         // message's tuple, possibly fixing endian issues along the way.
@@ -132,15 +137,7 @@ class Message
         const SerialMessage& serial_message)
     {
         uint64_t& value_ref = std::get<Index>(tup).value;
-        uint64_t n;
-        // Last value in the tuple is the sender id; others are copied
-        // from the payload array.
-        if constexpr (Index == std::tuple_size<decltype(tup)>::value - 1) {
-            n = serial_message.header.sender_id;
-        }
-        else {
-            n = serial_message.payload[Index];
-        }
+        uint64_t n = serial_message.payload[Index];
         value_ref = should_swap_endian ? bswap_64(n) : n;
         if constexpr (Index != 0) {
             initialize_tuple<Index-1>(should_swap_endian, serial_message);
@@ -185,11 +182,12 @@ int main()
     message.push_back(3);
     for (int i = 0; i < 7; ++i) message.push_back(0);
 
-    message += "Hello, text!\n";
+    message += "Hello, text!";
 
     BuyQuery bq(message);
 
     printf("PriceCents: %lu\n", uint64_t(PriceCents(bq)));
     printf("DiningHallBitfield: %lu\n", uint64_t(DiningHallBitfield(bq)));
     printf("SenderID: %lu\n", uint64_t(SenderID(bq)));
+    printf("text: \"%s\"\n", bq.text.c_str());
 }
