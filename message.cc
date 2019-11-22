@@ -19,6 +19,7 @@ struct WrongMagicNumber { };
 struct TYPENAME : MessageDataTypeBase { \
     explicit TYPENAME(uint64_t ARG = 0) { value = ARG; } \
     uint64_t* ptr() { return &value; } \
+    uint64_t operator+() const { return value; } \
     operator uint64_t() const { return value; } \
     void swap_endian() { value = bswap_64(value); } \
 };
@@ -185,9 +186,10 @@ int main()
     message += "Hello, text!";
 
     BuyQuery bq(message);
+    auto dining_hall_bitfield = +DiningHallBitfield(bq);
 
     printf("PriceCents: %lu\n", uint64_t(PriceCents(bq)));
-    printf("DiningHallBitfield: %lu\n", uint64_t(DiningHallBitfield(bq)));
+    printf("DiningHallBitfield: %lu\n", dining_hall_bitfield);
     printf("SenderID: %lu\n", uint64_t(SenderID(bq)));
     printf("text: \"%s\"\n", bq.text.c_str());
 }
