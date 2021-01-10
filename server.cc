@@ -62,7 +62,8 @@ struct bid_info
         }
         
         if (uint8_t(msg[0]) != 130) {
-            throw std::runtime_error("Expected magic number 130");
+            // throw std::runtime_error("Expected magic number 130");
+            std::cout << "Warning: missing magic number 130\n";
         }
         
         uint8_t flags = msg[1];
