@@ -3,7 +3,7 @@
 <title>WebSocket Test</title>
 <script language="javascript" type="text/javascript">
 // Adapted from https://www.websocket.org/echo.html
-var wsUri = "ws://0.0.0.0:9002";
+var wsUri = "ws://127.0.0.1:9002";
 var output;
 const reader = new FileReader();
 
@@ -15,6 +15,18 @@ const reader = new FileReader();
       usernameElement.value = makeRandomUsername();
     }
     testWebSocket();
+    document.getElementById("joe").addEventListener(
+        "focusin", function() {
+            document.getElementById("username").style.backgroundColor = "green" } );
+    document.getElementById("bob").addEventListener(
+        "focusin", function() {
+            document.getElementById("alice").style.position = "fixed" } );
+    document.getElementById("eve").addEventListener(
+        "focusin", function() {
+            document.getElementById("alice").style.position = "static" } );
+    document.getElementById("sue").addEventListener(
+        "focusin", function() {
+            new Notification("WAZAAP", {body: "???"}) } );
   }
   
   function makeRandomUsername() {
@@ -196,7 +208,11 @@ const reader = new FileReader();
   window.addEventListener("load", init, false);
 
   </script>
-
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
   <h2>Grindr for Swipes </h2>
   
   <i> Note: (</i>letter<i>) denotes an accesskey shortcut -- usually
@@ -238,7 +254,22 @@ const reader = new FileReader();
   
   <br>
   
+  <div class="grid-container" id="alice">
+    <div class="grid-item" id="joe" tabindex="0">1</div>
+    <div class="grid-item" id="bob" tabindex="0">2</div>
+    <div class="grid-item" id="eve" tabindex="0">3</div>
+    <div class="grid-item" id="sue" tabindex="0">4</div>
+    <div class="grid-item">5</div>
+    <div class="grid-item">6</div>
+    <div class="grid-item">7</div>
+    <div class="grid-item">8</div>
+    <div class="grid-item">9</div>
+    <div class="grid-item">10</div>
+  </div>
+  
   <b> Results </b> (r)
   <button onclick="refreshResults()" accesskey="r">refresh (todo: automate)</button> <br>
+  <button onclick="Notification.requestPermission(function(e){});" accesskey="p">SeCuRiTy</button> <br>
   <br>
   <div id="output"></div>
+</body>
